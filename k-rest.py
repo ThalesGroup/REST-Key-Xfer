@@ -14,7 +14,7 @@ from    kerrors import *
 from    krestcmds import *
 from    krestenums import *
 from    netappfilters import *
-from    termcolor import colored, cprint
+from    termcolor import colored
 import  colorama
 
 # ---------------- Constants ----------------------------------------------------
@@ -199,7 +199,7 @@ print("\n--------------- PROCESSING --------------------------------------------
 # ################################################################################
 # Get Source Information and Material
 # ################################################################################
-
+srcAuthStr = ""
 if listOnly != listOnlyOption.DESTINATION.value:
     srcAuthStr      = createSrcAuthStr(srcHost, srcPort, srcUser, srcPass)
     print("  * Source Access Confirmed *")
@@ -359,8 +359,11 @@ if listOnly != listOnlyOption.DESTINATION.value:
 # ################################################################################
 # Get Destination Information and Material
 # ################################################################################
+dstAuthStr = ""
+dstAuthBornOn = datetime.now()
+
 if listOnly != listOnlyOption.SOURCE.value:
-    dstAuthStr      = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
+    dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
     print("  * Destination Access Confirmed *")
 
 # Get destination user meta data that will be used later for 
@@ -536,8 +539,9 @@ if listOnly == listOnlyOption.NEITHER.value:
 
     if args.dstUserGroupName is not None:
         if t_flagGroupIsAbsent:
-            dstAuthStr      = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh
-            print("  --> Destination Authorization Key Refreshed")
+            if isAuthStrRefreshNeeded(dstAuthBornOn):  # test for refresh
+                dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
+                print(colored("  --> Destination Authorization String Refreshed", "light_yellow", attrs=["bold"]))
             createDstUsrGroup(dstHost, dstPort, dstAuthStr, dstUserGroupName)
             addDstUsrToGroup(dstHost, dstPort, dstAuthStr, CM_userNickname, CM_userID, dstUserGroupName)
             print(" * ", dstUserGroupName, "group configuration complete. * ")
@@ -547,15 +551,18 @@ if listOnly == listOnlyOption.NEITHER.value:
     # ----------------------------------------------------------------------------------------------
     print("\n*** Importing KEY material into destination... ***")
     
-    dstAuthStr      = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh
-    print("  --> Destination Authorization Key Refreshed")
+    if isAuthStrRefreshNeeded(dstAuthBornOn):  # test for refresh
+        dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
+        print(colored("  --> Destination Authorization String Refreshed", "light_yellow", attrs=["bold"]))
 
-    t_xKeyObjCount = 0
-    t_BTRefresh = 100
     for xKeyObj in xKeyObjList:
-        t_xKeyObjCount =+ 1 # increment key count
         t_keyObjName = xKeyObj[CMAttributeType.NAME.value]
-        print("\n xKeyObjName: ",  t_keyObjName)    
+        print("\n xKeyObjName: ",  t_keyObjName)
+
+        if isAuthStrRefreshNeeded(dstAuthBornOn):  # test for refresh
+            dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
+            print(colored("  --> Destination Authorization String Refreshed", "light_yellow", attrs=["bold"]))
+
         success = importDstDataKeyObject(dstHost, dstPort, dstUser, dstAuthStr, xKeyObj)
         print(" --> importDstDataKeyOjbect Success:", success)
         
@@ -565,14 +572,6 @@ if listOnly == listOnlyOption.NEITHER.value:
                 xKeyObjFromDst = getDstKeyByName(dstHost, dstPort, dstAuthStr, t_keyObjName)                
                 addDataObjectToGroup(dstHost, dstPort, dstUserGroupName, dstAuthStr, xKeyObjFromDst)
 
-        # Check to see if we have imported 100 keys.  To avoid expiry of the dstAuthStr, refresh
-        # dstAuthString every 100 keys.
-
-        if t_xKeyObjCount % t_BTRefresh == 0:
-            dstAuthStr      = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh
-            print("  --> Destination Authorization Key Refreshed at %s keys imported", t_xKeyObjCount )
-
-
     # ----------------------------------------------------------------------------------------------
     # IMPORT Secret Material into Destination
     # ----------------------------------------------------------------------------------------------
@@ -581,7 +580,12 @@ if listOnly == listOnlyOption.NEITHER.value:
     
         for xSecretObj in xSecretObjList:
             t_SecretObjName = xSecretObj[CMAttributeType.NAME.value]
-            print("\n xSecretObjName: ",  t_SecretObjName)    
+            print("\n xSecretObjName: ",  t_SecretObjName)
+
+            if isAuthStrRefreshNeeded(dstAuthBornOn):  # test for refresh
+                dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
+                print(colored("  --> Destination Authorization String Refreshed", "light_yellow", attrs=["bold"]))
+
             success = importDstDataSecretObject(dstHost, dstPort, dstUser, dstAuthStr, xSecretObj)
             print(" --> importDstDataSecretOjbect Success:", success)
         
@@ -597,8 +601,9 @@ if listOnly != listOnlyOption.SOURCE.value:
 ########################################################################################################### 
 
     print("\nRetrieving list of objects from destination...")
-    dstAuthStr      = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh
-    print("  --> Destination Authorization Key Refreshed")
+    if isAuthStrRefreshNeeded(dstAuthBornOn):  # test for refresh
+        dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
+        print(colored("  --> Destination Authorization String Refreshed", "light_yellow", attrs=["bold"]))
 
     dstObjList      = getDstObjList(dstHost, dstPort, dstAuthStr)
     dstObjListCnt   = len(dstObjList)

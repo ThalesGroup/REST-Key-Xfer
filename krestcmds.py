@@ -11,8 +11,9 @@ import  json
 from    kerrors import *
 from    krestenums import *
 
-import  enum
 import  re
+from datetime import datetime
+import time
 
 # ---------------- CONSTANTS -----------------------------------------------------
 STATUS_CODE_OK      = 200
@@ -535,9 +536,10 @@ def createDstAuthStr(t_dstHost, t_dstPort, t_dstUser, t_dstPass):
 
     # Extract the Bearer Token from the value of the key-value pair of the JSON reponse which is identified by the 'jwt' key.
     t_dstUserBearerToken            = r.json()['jwt']
-    t_dstAuthStr                    = "Bearer "+t_dstUserBearerToken
+    t_dstAuthStr                    = "Bearer " + t_dstUserBearerToken
+    t_dstAuthStrBornOn              = datetime.now() # add bearer birthday to be able to track when it will expire (300 seconds later)
 
-    return t_dstAuthStr
+    return t_dstAuthStr, t_dstAuthStrBornOn
 
 def getDstObjList(t_dstHost, t_dstPort, t_dstAuthStr):
 # -----------------------------------------------------------------------------
@@ -1104,3 +1106,21 @@ def createDictFromEnum(t_enum):
         returnDict[tmpEnum.name] = tmpEnum.value
 
     return returnDict
+
+def isAuthStrRefreshNeeded(t_bornOn):
+# ----------------------------------------------------------------------------------
+# The DST Bearer token / Auth token will expire after 300 seconds on CM.  
+# Include this check before you use the Auth token check its age.
+# ----------------------------------------------------------------------------------
+    result = False # default
+    t_currentTime = datetime.now()
+    t_timeDiff = t_currentTime - t_bornOn
+    time_diff_secs = t_timeDiff.total_seconds()
+
+    # print("Time Diff:", time_diff_secs)
+
+    if time_diff_secs > 275: # something lower than 300
+        # print("Auth String Refresh Needed")
+        result = True
+
+    return result
