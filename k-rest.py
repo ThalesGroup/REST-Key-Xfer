@@ -9,11 +9,7 @@
 #####################################################################################
 
 import  argparse
-import  binascii
-import  codecs
-import  hashlib
 from    pickle import TRUE
-# from    tkinter.tix import TCL_ALL_EVENTS
 from    kerrors import *
 from    krestcmds import *
 from    krestenums import *
@@ -387,7 +383,6 @@ if listOnly != listOnlyOption.SOURCE.value:
         t_nickname  = t_idx[CMUserAttribute.NICKNAME.value]
         dstUsrsAllDict[t_user_id] = t_nickname
 
-        
 if listOnly == listOnlyOption.NEITHER.value:
 ###########################################################################################################        
 # Create and upload all of the key objects to the destination unless a flag to LIST ONLY has been specified. 
@@ -541,6 +536,8 @@ if listOnly == listOnlyOption.NEITHER.value:
 
     if args.dstUserGroupName is not None:
         if t_flagGroupIsAbsent:
+            dstAuthStr      = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh
+            print("  --> Destination Authorization Key Refreshed")
             createDstUsrGroup(dstHost, dstPort, dstAuthStr, dstUserGroupName)
             addDstUsrToGroup(dstHost, dstPort, dstAuthStr, CM_userNickname, CM_userID, dstUserGroupName)
             print(" * ", dstUserGroupName, "group configuration complete. * ")
@@ -550,7 +547,13 @@ if listOnly == listOnlyOption.NEITHER.value:
     # ----------------------------------------------------------------------------------------------
     print("\n*** Importing KEY material into destination... ***")
     
+    dstAuthStr      = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh
+    print("  --> Destination Authorization Key Refreshed")
+
+    t_xKeyObjCount = 0
+    t_BTRefresh = 100
     for xKeyObj in xKeyObjList:
+        t_xKeyObjCount =+ 1 # increment key count
         t_keyObjName = xKeyObj[CMAttributeType.NAME.value]
         print("\n xKeyObjName: ",  t_keyObjName)    
         success = importDstDataKeyObject(dstHost, dstPort, dstUser, dstAuthStr, xKeyObj)
@@ -561,6 +564,14 @@ if listOnly == listOnlyOption.NEITHER.value:
             if args.dstUserGroupName is not None:
                 xKeyObjFromDst = getDstKeyByName(dstHost, dstPort, dstAuthStr, t_keyObjName)                
                 addDataObjectToGroup(dstHost, dstPort, dstUserGroupName, dstAuthStr, xKeyObjFromDst)
+
+        # Check to see if we have imported 100 keys.  To avoid expiry of the dstAuthStr, refresh
+        # dstAuthString every 100 keys.
+
+        if t_xKeyObjCount % t_BTRefresh == 0:
+            dstAuthStr      = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh
+            print("  --> Destination Authorization Key Refreshed at %s keys imported", t_xKeyObjCount )
+
 
     # ----------------------------------------------------------------------------------------------
     # IMPORT Secret Material into Destination
@@ -586,6 +597,9 @@ if listOnly != listOnlyOption.SOURCE.value:
 ########################################################################################################### 
 
     print("\nRetrieving list of objects from destination...")
+    dstAuthStr      = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh
+    print("  --> Destination Authorization Key Refreshed")
+
     dstObjList      = getDstObjList(dstHost, dstPort, dstAuthStr)
     dstObjListCnt   = len(dstObjList)
     tmpstr = "\n Dst Object List Count: %s" %(dstObjListCnt)
@@ -593,7 +607,7 @@ if listOnly != listOnlyOption.SOURCE.value:
 
     # Now that name information has been collected, export the data for each key
     # THIS INCLUDES the META Data and the Key Material
-    dstObjData      = exportDstObjData(dstHost, dstPort, dstObjList, dstAuthStr)
+    dstObjData      = exportDstObjData(dstHost, dstPort, dstObjList, dstAuthStr, dstUser, dstPass)
 
     # Filter and show NetApp specific information.
     if len(srcNetAppFilterDict) > 0:

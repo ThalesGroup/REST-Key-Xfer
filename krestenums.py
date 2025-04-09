@@ -2,7 +2,6 @@
 #
 # definition file
 ######################################################################
-from asyncio.windows_events import NULL
 import enum
 
 # Class and enumersations taken from KMIP standard

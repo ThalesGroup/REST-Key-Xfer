@@ -603,7 +603,7 @@ def getDstObjList(t_dstHost, t_dstPort, t_dstAuthStr):
     # print("\n         Dst Objects: ",  t_dstFinalObjList[0].keys())
     return t_dstFinalObjList
     
-def exportDstObjData(t_dstHost, t_dstPort, t_dstObjList, t_dstAuthStr):
+def exportDstObjData(t_dstHost, t_dstPort, t_dstObjList, t_dstAuthStr, t_dstUser, t_dstPass):
 # -----------------------------------------------------------------------------
 # REST Assembly for EXPORTING specific Object Data from DESTINATION HOST
 #
@@ -618,6 +618,7 @@ def exportDstObjData(t_dstHost, t_dstPort, t_dstObjList, t_dstAuthStr):
     t_dstObjData            = [] # created list to be returned later
     t_ObjCnt                = 0  # Initialize counter
     t_ListLen               = len(t_dstObjList)
+    t_BTRefresh             = 100
     
     for obj in range(t_ListLen):
         dstObjID    = t_dstObjList[obj][CMAttributeType.ID.value]
@@ -648,6 +649,10 @@ def exportDstObjData(t_dstHost, t_dstPort, t_dstObjList, t_dstAuthStr):
         # print(tmpStr)
         
         t_ObjCnt += 1
+
+        if t_ObjCnt % t_BTRefresh == 0:
+            t_dstAuthStr      = createDstAuthStr(t_dstHost, t_dstPort, t_dstUser, t_dstPass) # refresh
+            print("  --> Destination Authorization Key Refreshed in exportDstObjData at key %s of thresh %s" %(t_ObjCnt, t_BTRefresh) )
 
     return t_dstObjData
 
@@ -766,8 +771,8 @@ def printDstObjDataAndOwner(t_dstObjData, t_UserDict):
                 t_oID   = str(t_dstObjData[obj][CMAttributeType.META.value][CMAttributeType.OWNER_ID.value])
                 t_owner = t_UserDict[t_oID]
             else:
-                t_oID   = NULL
-                t_owner = NULL
+                t_oID   = ""
+                t_owner = ""
 
             t_alias = str(t_dstObjData[obj][CMAttributeType.ALIASES.value][0][CMAliasesAttribute.ALIAS.value])
 

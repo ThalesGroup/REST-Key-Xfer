@@ -11,13 +11,14 @@ python3 k-rest.py \
 -srcUser SKLMAdmin -srcPass Thales_4567 \
 -dstHost cm-kirk.test256.io \
 -dstUser rest_alice -dstPass Thales234! \
--listOnly SOURCE \
--srcuuid KEY-c \
--netAppNodeID 8d \
--netAppClusterName AFF \
--netAppVserverID 42 \
--dstUserGroupName Group3 \
+-dstUserGroupName NetApp \
 -listSrcClients \
--srcClientName Client1
+-resolveSrcClientOwnership 
+# -srcuuid KEY-c \
+# -netAppNodeID 8d \
+# -netAppClusterName AFF \
+# -netAppVserverID 42 \
+# -srcClientName Client1
 # -includeSecrets
-# -resolveSrcClientOwnership 
+# -listOnly SOURCE \
+
