@@ -15,7 +15,8 @@ def kPrintError(t_str, t_r):
     t_str_sc    = str(t_r.status_code)
     t_str_r     = str(t_r.reason)
     # t_str_e     = str(t_r.json()['error'])
-    t_str_e     = str(t_r.json())
+    # t_str_e     = str(t_r.json())
+    t_str_e     = str(t_r)
     
     tmpstr1      = "  --> %s " %(t_str)
     tmpstr2      = "Status Code: %s\n   Reason: %s\n   Error: %s" %(t_str_sc, t_str_r, t_str_e)
