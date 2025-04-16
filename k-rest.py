@@ -123,7 +123,7 @@ if args.dstUserGroupName is not None:
     
     # If Group is specified, download the existing groups from the destination
     # and see if the group is already present.
-    dstAuthStr = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
+    dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
     dstGrpList = getDstGroupsAll(dstHost, dstPort, dstAuthStr)
     # printJList("dstGrpList:", dstGrpList)
     
@@ -601,9 +601,7 @@ if listOnly != listOnlyOption.SOURCE.value:
 ########################################################################################################### 
 
     print("\nRetrieving list of objects from destination...")
-    if isAuthStrRefreshNeeded(dstAuthBornOn):  # test for refresh
-        dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass)
-        print(colored("  --> Destination Authorization String Refreshed", "light_yellow", attrs=["bold"]))
+    dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh authStr
 
     dstObjList      = getDstObjList(dstHost, dstPort, dstAuthStr)
     dstObjListCnt   = len(dstObjList)
@@ -612,7 +610,8 @@ if listOnly != listOnlyOption.SOURCE.value:
 
     # Now that name information has been collected, export the data for each key
     # THIS INCLUDES the META Data and the Key Material
-    dstObjData      = exportDstObjData(dstHost, dstPort, dstObjList, dstAuthStr, dstUser, dstPass)
+    dstObjData      = exportDstObjData(dstHost, dstPort, dstObjList, dstUser, dstPass)
+    dstAuthStr, dstAuthBornOn = createDstAuthStr(dstHost, dstPort, dstUser, dstPass) # refresh authStr
 
     # Filter and show NetApp specific information.
     if len(srcNetAppFilterDict) > 0:
@@ -630,8 +629,5 @@ if listOnly != listOnlyOption.SOURCE.value:
     print(colored(tmpstr, "light_green", attrs=["bold"]))
 
 
-
-    
-    
 
 #####################################################################################
