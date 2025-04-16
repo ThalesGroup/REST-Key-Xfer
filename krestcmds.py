@@ -651,7 +651,7 @@ def exportDstObjData(t_dstHost, t_dstPort, t_dstObjList, t_dstUser, t_dstPass):
         
         if isAuthStrRefreshNeeded(t_dstAuthBornOn):
             t_dstAuthStr, t_dstAuthBornOn = createDstAuthStr(t_dstHost, t_dstPort, t_dstUser, t_dstPass) # refresh
-            print("  --> Destination Authorization Key Refreshed in exportDstObjData at key %s of thresh %s" %(t_ObjCnt, t_BTRefresh) )
+            print("  --> Destination Authorization Key Refreshed in exportDstObjData")
 
     return t_dstObjData
 
